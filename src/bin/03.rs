@@ -17,7 +17,7 @@ fn gather_same_items_in_rucksack_group(rucksack_group: &[&str]) -> Vec<char> {
     let compare_rucksack = rucksack_group.first().unwrap().chars().into_iter().unique();
     let mut same_items = compare_rucksack.collect_vec();
 
-    for rucksack in rucksack_group.into_iter().skip(1) {
+    for rucksack in rucksack_group.iter().skip(1) {
         same_items = same_items
             .iter()
             .cloned()
