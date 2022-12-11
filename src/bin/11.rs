@@ -1,5 +1,14 @@
 use itertools::Itertools;
 
+// Yeah, yeah, yeah, I'm dumb.  I only realized after programming this whole
+// thing that for part2 I dont need to keep track of all remainders for all
+// possibile divisors, but since the division tests are made with prime numbers
+// I could just multiply them together to get a better modular arithmatic which
+// works for all of them at once.
+
+// Welp, since this is how I submitted my result, I keep the bad code for now.
+// Maybe later I refactor it..
+
 #[derive(Debug, Clone)]
 struct Item {
     starting_value: u32,
