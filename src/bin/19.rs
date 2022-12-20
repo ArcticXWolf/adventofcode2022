@@ -44,27 +44,63 @@ impl State {
         }
     }
 
-    fn can_buy(&self, robot_type: &RobotType, costs: &Costs) -> bool {
+    fn can_buy_when(&self, robot_type: &RobotType, costs: &Costs) -> Option<u32> {
         match robot_type {
             RobotType::Ore => {
-                self.currency.0 >= costs.ore_robot.0
-                    && self.currency.1 >= costs.ore_robot.1
-                    && self.currency.2 >= costs.ore_robot.2
+                if self.amount_robots.0 == 0 || self.amount_robots.0 >= costs.highest_ore_cost {
+                    return None;
+                }
+                Some(
+                    (0.max(costs.ore_robot.0 as i32 - self.currency.0 as i32) as u32
+                        + self.amount_robots.0
+                        - 1)
+                        / self.amount_robots.0,
+                )
             }
             RobotType::Clay => {
-                self.currency.0 >= costs.clay_robot.0
-                    && self.currency.1 >= costs.clay_robot.1
-                    && self.currency.2 >= costs.clay_robot.2
+                if self.amount_robots.0 == 0 || self.amount_robots.1 >= costs.highest_clay_cost {
+                    return None;
+                }
+                Some(
+                    (0.max(costs.clay_robot.0 as i32 - self.currency.0 as i32) as u32
+                        + self.amount_robots.0
+                        - 1)
+                        / self.amount_robots.0,
+                )
             }
             RobotType::Obsidian => {
-                self.currency.0 >= costs.obsidian_robot.0
-                    && self.currency.1 >= costs.obsidian_robot.1
-                    && self.currency.2 >= costs.obsidian_robot.2
+                if self.amount_robots.0 == 0
+                    || self.amount_robots.1 == 0
+                    || self.amount_robots.2 >= costs.highest_obsidian_cost
+                {
+                    return None;
+                }
+                let time_ore = (0.max(costs.obsidian_robot.0 as i32 - self.currency.0 as i32)
+                    as u32
+                    + self.amount_robots.0
+                    - 1)
+                    / self.amount_robots.0;
+                let time_clay = (0.max(costs.obsidian_robot.1 as i32 - self.currency.1 as i32)
+                    as u32
+                    + self.amount_robots.1
+                    - 1)
+                    / self.amount_robots.1;
+                Some(time_ore.max(time_clay))
             }
             RobotType::Geode => {
-                self.currency.0 >= costs.geode_robot.0
-                    && self.currency.1 >= costs.geode_robot.1
-                    && self.currency.2 >= costs.geode_robot.2
+                if self.amount_robots.0 == 0 || self.amount_robots.2 == 0 {
+                    return None;
+                }
+                let time_ore = (0.max(costs.geode_robot.0 as i32 - self.currency.0 as i32) as u32
+                    + self.amount_robots.0
+                    - 1)
+                    / self.amount_robots.0;
+                let time_obsidian = (0.max(costs.geode_robot.2 as i32 - self.currency.2 as i32)
+                    as u32
+                    + self.amount_robots.2
+                    - 1)
+                    / self.amount_robots.2;
+                Some(time_ore.max(time_obsidian))
             }
         }
     }
@@ -139,58 +175,83 @@ fn find_optimum_return_recursivly(
         return *result;
     }
 
-    let generated_state = state.generate();
     let mut max_geodes = 0;
 
-    if state.can_buy(&RobotType::Geode, costs) {
-        let new_state = generated_state.buy(&RobotType::Geode, costs);
-        max_geodes = max_geodes.max(find_optimum_return_recursivly(
-            time_left - 1,
-            costs,
-            &new_state,
-            cache,
-        ));
+    if let Some(time) = state.can_buy_when(&RobotType::Geode, costs) {
+        if time < time_left {
+            let mut new_state = state.generate();
+            for _ in 0..time {
+                new_state = new_state.generate();
+            }
+            new_state = new_state.buy(&RobotType::Geode, costs);
+
+            max_geodes = max_geodes.max(find_optimum_return_recursivly(
+                time_left - time - 1,
+                costs,
+                &new_state,
+                cache,
+            ));
+        }
     }
 
-    if state.amount_robots.2 < costs.highest_obsidian_cost
-        && state.can_buy(&RobotType::Obsidian, costs)
-    {
-        let new_state = generated_state.buy(&RobotType::Obsidian, costs);
-        max_geodes = max_geodes.max(find_optimum_return_recursivly(
-            time_left - 1,
-            costs,
-            &new_state,
-            cache,
-        ));
+    if let Some(time) = state.can_buy_when(&RobotType::Obsidian, costs) {
+        if time < time_left {
+            let mut new_state = state.generate();
+            for _ in 0..time {
+                new_state = new_state.generate();
+            }
+            new_state = new_state.buy(&RobotType::Obsidian, costs);
+
+            max_geodes = max_geodes.max(find_optimum_return_recursivly(
+                time_left - time - 1,
+                costs,
+                &new_state,
+                cache,
+            ));
+        }
     }
 
-    if state.amount_robots.1 < costs.highest_clay_cost && state.can_buy(&RobotType::Clay, costs) {
-        let new_state = generated_state.buy(&RobotType::Clay, costs);
-        max_geodes = max_geodes.max(find_optimum_return_recursivly(
-            time_left - 1,
-            costs,
-            &new_state,
-            cache,
-        ));
+    if let Some(time) = state.can_buy_when(&RobotType::Clay, costs) {
+        if time < time_left {
+            let mut new_state = state.generate();
+            for _ in 0..time {
+                new_state = new_state.generate();
+            }
+            new_state = new_state.buy(&RobotType::Clay, costs);
+
+            max_geodes = max_geodes.max(find_optimum_return_recursivly(
+                time_left - time - 1,
+                costs,
+                &new_state,
+                cache,
+            ));
+        }
     }
 
-    if state.amount_robots.0 < costs.highest_ore_cost && state.can_buy(&RobotType::Ore, costs) {
-        let new_state = generated_state.buy(&RobotType::Ore, costs);
-        max_geodes = max_geodes.max(find_optimum_return_recursivly(
-            time_left - 1,
-            costs,
-            &new_state,
-            cache,
-        ));
+    if let Some(time) = state.can_buy_when(&RobotType::Ore, costs) {
+        if time < time_left {
+            let mut new_state = state.generate();
+            for _ in 0..time {
+                new_state = new_state.generate();
+            }
+
+            new_state = new_state.buy(&RobotType::Ore, costs);
+
+            max_geodes = max_geodes.max(find_optimum_return_recursivly(
+                time_left - time - 1,
+                costs,
+                &new_state,
+                cache,
+            ));
+        }
     }
 
-    // buy nothing
-    max_geodes = max_geodes.max(find_optimum_return_recursivly(
-        time_left - 1,
-        costs,
-        &generated_state,
-        cache,
-    ));
+    // buy nothing until end of time
+    let mut new_state = state.generate();
+    for _ in 0..(time_left - 1) {
+        new_state = new_state.generate();
+    }
+    max_geodes = max_geodes.max(find_optimum_return_recursivly(0, costs, &new_state, cache));
 
     cache.insert((time_left, state.clone()), max_geodes);
 
@@ -199,7 +260,6 @@ fn find_optimum_return_recursivly(
 
 pub fn part_one(_input: &str) -> Option<u32> {
     let blueprints = parse_input(_input);
-    println!("{:?}", blueprints);
     let mut tracker = 0;
     for (i, b) in blueprints.iter().enumerate() {
         let result = find_optimum_return_recursivly(
@@ -211,8 +271,6 @@ pub fn part_one(_input: &str) -> Option<u32> {
             },
             &mut HashMap::new(),
         );
-        //let result = find_optimum_return2(24, &b);
-        println!("Got blueprint {:02} with {}", i, result);
         tracker += result * (i as u32 + 1);
     }
     Some(tracker)
@@ -220,9 +278,8 @@ pub fn part_one(_input: &str) -> Option<u32> {
 
 pub fn part_two(_input: &str) -> Option<u32> {
     let blueprints = parse_input(_input.lines().take(3).join("\n").as_str());
-    println!("{:?}", blueprints);
     let mut tracker = 1;
-    for (i, b) in blueprints.iter().enumerate() {
+    for (_, b) in blueprints.iter().enumerate() {
         let result = find_optimum_return_recursivly(
             32,
             b,
@@ -232,8 +289,6 @@ pub fn part_two(_input: &str) -> Option<u32> {
             },
             &mut HashMap::new(),
         );
-        //let result = find_optimum_return2(24, &b);
-        println!("Got blueprint {:02} with {}", i, result);
         tracker *= result;
     }
     Some(tracker)
