@@ -310,6 +310,7 @@ mod tests {
         assert_eq!(part_one(&input), Some(33));
     }
 
+    #[ignore]
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 19);
