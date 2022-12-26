@@ -116,7 +116,7 @@ impl Point<isize> {
                 y: self.y - distance,
             },
             PointDirection::NorthEast => Self {
-                x: self.x - distance,
+                x: self.x + distance,
                 y: self.y - distance,
             },
             PointDirection::East => Self {

@@ -7,9 +7,33 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug current unit tests",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--package",
+                    "advent_of_code",
+                    "--bin",
+                    "${fileBasenameNoExtension}",
+                    "--",
+                    "tests",
+                    "--nocapture"
+                ],
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in executable 'advent_of_code'",
             "cargo": {
-                "args": ["test", "--no-run", "--bin=advent_of_code", "--package=advent_of_code"],
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=advent_of_code",
+                    "--package=advent_of_code"
+                ],
                 "filter": {
                     "name": "advent_of_code",
                     "kind": "bin"
@@ -23,13 +47,19 @@
             "request": "launch",
             "name": "Debug executable 'advent_of_code'",
             "cargo": {
-                "args": ["build", "--bin=advent_of_code", "--package=advent_of_code"],
+                "args": [
+                    "build",
+                    "--bin=advent_of_code",
+                    "--package=advent_of_code"
+                ],
                 "filter": {
                     "name": "advent_of_code",
                     "kind": "bin"
                 }
             },
-            "args": ["1"],
+            "args": [
+                "1"
+            ],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -37,7 +67,12 @@
             "request": "launch",
             "name": "Debug unit tests in library 'advent_of_code'",
             "cargo": {
-                "args": ["test", "--no-run", "--lib", "--package=advent_of_code"],
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=advent_of_code"
+                ],
                 "filter": {
                     "name": "advent_of_code",
                     "kind": "lib"
