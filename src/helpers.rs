@@ -11,7 +11,7 @@ use parse_display::{Display, FromStr};
  * Example import from this file: `use advent_of_code::helpers::example_fn;`.
  */
 
-#[derive(Debug, Clone, Display, FromStr)]
+#[derive(Debug, Clone, Display, FromStr, PartialEq, Eq)]
 pub enum PointDirection {
     #[display("^")]
     North,
@@ -109,6 +109,10 @@ impl<T: Sub<Output = T>> Sub for Point<T> {
 }
 
 impl Point<isize> {
+    pub fn manhattan_distance(&self, other: &Self) -> usize {
+        self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+    }
+
     pub fn get_point_in_direction(&self, direction: &PointDirection, distance: isize) -> Self {
         match direction {
             PointDirection::North => Self {
@@ -144,6 +148,29 @@ impl Point<isize> {
                 y: self.y - distance,
             },
         }
+    }
+
+    pub fn is_in_rectangle(&self, min: Self, max: Self) -> bool {
+        self.x >= min.x && self.x < max.x && self.y >= min.y && self.y > max.y
+    }
+
+    pub fn wrap_around_in_rectangle(&self, min: Self, max: Self) -> Self {
+        let mut new_x = self.x;
+        let mut new_y = self.y;
+
+        if new_x < min.x {
+            new_x = max.x - 1;
+        } else if new_x >= max.x {
+            new_x = min.x;
+        }
+
+        if new_y < min.y {
+            new_y = max.y - 1;
+        } else if new_y >= max.y {
+            new_y = min.y;
+        }
+
+        Point { x: new_x, y: new_y }
     }
 }
 
@@ -274,5 +301,27 @@ impl Point3<i32> {
             Point3 { x: 0, y: 0, z: -1 }, // Above
             Point3 { x: 0, y: 0, z: 1 },  // Below
         ]
+    }
+}
+
+pub fn lcm(first: usize, second: usize) -> usize {
+    first * second / gcd(first, second)
+}
+
+pub fn gcd(first: usize, second: usize) -> usize {
+    let mut max = first;
+    let mut min = second;
+    if min > max {
+        std::mem::swap(&mut max, &mut min);
+    }
+
+    loop {
+        let res = max % min;
+        if res == 0 {
+            return min;
+        }
+
+        max = min;
+        min = res;
     }
 }
