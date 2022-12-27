@@ -107,7 +107,7 @@ fn forward_blizzards(blizzards: &PointGrid<BlizzardList>) -> PointGrid<BlizzardL
     result
 }
 
-fn bfs(
+fn pathfinding(
     bl_cache: &[PointGrid<BlizzardList>],
     start: &Point<isize>,
     end: &Point<isize>,
@@ -197,16 +197,16 @@ pub fn part_one(_input: &str) -> Option<usize> {
     let (grid, start, end) = parse_input(_input);
     let (bl_cache, cycle_length, max_distance) = init_valley(&grid);
 
-    bfs(&bl_cache, &start, &end, 0, cycle_length, max_distance)
+    pathfinding(&bl_cache, &start, &end, 0, cycle_length, max_distance)
 }
 
 pub fn part_two(_input: &str) -> Option<usize> {
     let (grid, start, end) = parse_input(_input);
     let (bl_cache, cycle_length, max_distance) = init_valley(&grid);
 
-    let goal1 = bfs(&bl_cache, &start, &end, 0, cycle_length, max_distance).unwrap();
-    let goal2 = bfs(&bl_cache, &end, &start, goal1, cycle_length, max_distance).unwrap();
-    bfs(&bl_cache, &start, &end, goal2, cycle_length, max_distance)
+    let goal1 = pathfinding(&bl_cache, &start, &end, 0, cycle_length, max_distance).unwrap();
+    let goal2 = pathfinding(&bl_cache, &end, &start, goal1, cycle_length, max_distance).unwrap();
+    pathfinding(&bl_cache, &start, &end, goal2, cycle_length, max_distance)
 }
 
 fn main() {
