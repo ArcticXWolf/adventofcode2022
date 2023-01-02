@@ -166,6 +166,7 @@ fn find_optimum_return_recursivly(
     costs: &Costs,
     state: &State,
     cache: &mut HashMap<(u32, State), u32>,
+    current_best: u32,
 ) -> u32 {
     if time_left == 0 {
         return state.currency.3;
@@ -173,6 +174,12 @@ fn find_optimum_return_recursivly(
 
     if let Some(result) = cache.get(&(time_left, state.clone())) {
         return *result;
+    }
+
+    if current_best
+        > state.currency.3 + state.amount_robots.3 * time_left + (time_left * (time_left - 1) / 2)
+    {
+        return current_best;
     }
 
     let mut max_geodes = 0;
@@ -190,6 +197,7 @@ fn find_optimum_return_recursivly(
                 costs,
                 &new_state,
                 cache,
+                current_best.max(max_geodes),
             ));
         }
     }
@@ -207,6 +215,7 @@ fn find_optimum_return_recursivly(
                 costs,
                 &new_state,
                 cache,
+                current_best.max(max_geodes),
             ));
         }
     }
@@ -224,6 +233,7 @@ fn find_optimum_return_recursivly(
                 costs,
                 &new_state,
                 cache,
+                current_best.max(max_geodes),
             ));
         }
     }
@@ -242,6 +252,7 @@ fn find_optimum_return_recursivly(
                 costs,
                 &new_state,
                 cache,
+                current_best.max(max_geodes),
             ));
         }
     }
@@ -251,7 +262,13 @@ fn find_optimum_return_recursivly(
     for _ in 0..(time_left - 1) {
         new_state = new_state.generate();
     }
-    max_geodes = max_geodes.max(find_optimum_return_recursivly(0, costs, &new_state, cache));
+    max_geodes = max_geodes.max(find_optimum_return_recursivly(
+        0,
+        costs,
+        &new_state,
+        cache,
+        current_best.max(max_geodes),
+    ));
 
     cache.insert((time_left, state.clone()), max_geodes);
 
@@ -270,6 +287,7 @@ pub fn part_one(_input: &str) -> Option<u32> {
                 currency: (0, 0, 0, 0),
             },
             &mut HashMap::new(),
+            0,
         );
         tracker += result * (i as u32 + 1);
     }
@@ -288,6 +306,7 @@ pub fn part_two(_input: &str) -> Option<u32> {
                 currency: (0, 0, 0, 0),
             },
             &mut HashMap::new(),
+            0,
         );
         tracker *= result;
     }
